@@ -6,8 +6,6 @@ SRCMAN_BASHRC=~/.bashrc
 SRCMAN_ZSHRCDIR=~/src/srcman
 
 srcman_refresh() {
-	#echo -e "[\e[32m*\e[0m] Syncing with pacman..."
-	#sudo pacman -Sy
 	cd $DR
 		if [ ! -d "packages" ]; then
 			echo -e "[\e[33m*\e[0m] packages directory not found, cloning..."
@@ -105,7 +103,6 @@ if [[ $MAJOR = "sync" ]] && [[ $REFRESH = 1 ]]; then
 fi
 
 if [[ $MAJOR = "sync" ]] && [[ $SEARCH = 1 ]] && [[ $ARGS != "" ]]; then
-	#PKGDIR=$(find $DR/packages $DR/community -name \*$ARGS\* -not -iwholename '*.git*' -type d | sed "s|$DR/||g")
 	PKGDIR=$(find $DR/packages $DR/community -maxdepth 1 -name \*$ARGS\* -not -iwholename '*.git*' | sed "s|$DR/||g")
 	if [[ $PKGDIR != "" ]]; then
 		echo -e "[\e[32m*\e[0m] Search results for $ARGS:"
@@ -119,7 +116,6 @@ fi
 
 if [[ $MAJOR = "sync" ]] && [[ $EDIT = 1 ]] && [[ $ARGS != "" ]]; then
 	for arg in ${ARGS[@]}; do
-		#PKGDIR=$(find $DR/packages $DR/community -name $arg -not -iwholename '*.git*')
 		PKGDIR=$(find $DR/packages $DR/community -maxdepth 1 -name $arg -not -iwholename '*.git*')
 		if [[ $PKGDIR != "" ]]; then
 			echo -e "[\e[32m*\e[0m] Package $arg found."
@@ -134,7 +130,6 @@ fi
 
 if [[ $MAJOR = "sync" ]] && [[ $CD = 1 ]] && [[ $ARGS != "" ]]; then
 	for arg in ${ARGS[@]}; do
-		#PKGDIR=$(find $DR/packages $DR/community -name $arg -not -iwholename '*.git*')
 		PKGDIR=$(find $DR/packages $DR/community -maxdepth 1 -name $arg -not -iwholename '*.git*')
 		if [[ $PKGDIR != "" ]]; then
 			echo -e "[\e[32m*\e[0m] Package $arg found."
@@ -152,7 +147,6 @@ fi
 
 if [[ $MAJOR = "sync" ]] && [[ $ARGS != "" ]]; then
 	for arg in ${ARGS[@]}; do
-		#PKGDIR=$(find $DR/packages $DR/community -name $arg -not -iwholename '*.git*')
 		PKGDIR=$(find $DR/packages $DR/community -maxdepth 1 -name $arg -not -iwholename '*.git*')
 		if [[ $PKGDIR != "" ]]; then
 			echo -e "[\e[32m*\e[0m] Package $arg found."
@@ -168,17 +162,6 @@ if [[ $MAJOR = "sync" ]] && [[ $ARGS != "" ]]; then
 fi
 
 if [[ $MAJOR = "aur" ]] && [[ $SEARCH = 1 ]] && [[ $ARGS != "" ]]; then
-	#RESULTS=$(package-query -As -f "%r/%n" $ARGS)
-	#if [[ $RESULTS != "" ]]; then
-	#	echo -e "[\e[32m*\e[0m] Search results for $ARGS:"
-	#	echo "$RESULTS"
-	#	exit
-	#else
-	#	echo -e "[\e[31m*\e[0m] No search results for $ARGS."
-	#	exit
-	#fi
-
-	#PKGDIR=$(find $DR/aur -name \*$ARGS\* -not -iwholename '*.git*' -type d | sed "s|$DR/||g")
 	PKGDIR=$(find $DR/aur -maxdepth 1 -name \*$ARGS\* -not -iwholename '*.git*' | sed "s|$DR/||g")
 	if [[ $PKGDIR != "" ]]; then
 		echo -e "[\e[32m*\e[0m] Search results for $ARGS:"
@@ -203,7 +186,6 @@ fi
 
 if [[ $MAJOR = "aur" ]] && [[ $REMOVE = 1 ]] && [[ $ARGS != "" ]]; then
 	for arg in ${ARGS[@]}; do
-		#PKGDIR=$(find $DR/aur -name \*$arg\* -not -iwholename '*.git*' -type d)
 		PKGDIR=$(find $DR/aur -maxdepth 1 -name \*$arg\* -not -iwholename '*.git*')
 		if [[ $PKGDIR != "" ]]; then
 			echo -e "[\e[33m*\e[0m] Removing $arg..."
