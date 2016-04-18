@@ -1,0 +1,262 @@
+#!/bin/bash
+
+DR=~/src/srcman
+SRCMAN_SHELL=zsh
+SRCMAN_BASHRC=~/.bashrc
+SRCMAN_ZSHRCDIR=~/src/srcman
+
+srcman_refresh() {
+	#echo -e "[\e[32m*\e[0m] Syncing with pacman..."
+	#sudo pacman -Sy
+	cd $DR
+		if [ ! -d "packages" ]; then
+			echo -e "[\e[33m*\e[0m] packages directory not found, cloning..."
+			git clone git://projects.archlinux.org/svntogit/packages.git
+		fi
+		if [ ! -d "community" ]; then
+			echo -e "[\e[33m*\e[0m] community directory not found, cloning..."
+			git clone git://projects.archlinux.org/svntogit/community.git
+		fi
+	cd $DR/packages
+		echo -e "[\e[32m*\e[0m] Updating packages repo..."
+		git pull
+	cd $DR/community
+		echo -e "[\e[32m*\e[0m] Updating community repo..."
+		git pull 
+}
+
+srcman_aur() {
+	PKGURL=$(package-query -Aif "%G" $arg)
+	PKGBASE=$(package-query -Aif "%b" $arg)
+	if [[ $PKGURL = "" ]] || [[ $PKGBASE = "" ]]; then
+		echo -e "[\e[31m*\e[0m] Package $arg not found."
+		exit
+	fi
+	cd $DR
+		if [ ! -d "aur" ]; then
+			echo -e "[\e[33m*\e[0m] aur directory not found, creating..."
+			mkdir aur
+		fi
+	cd $DR/aur
+		if [ ! -d "$PKGBASE" ]; then
+			echo -e "[\e[33m*\e[0m] Package $arg not found in local directory, cloning..."
+			git clone $PKGURL
+		fi
+		echo -e "[\e[32m*\e[0m] Package $arg found."
+		cd $PKGBASE
+}
+
+explode_args() {
+	unset OPTS
+	local arg=$1 key value
+
+	while [[ $arg ]]; do
+		[[ $arg = "--" ]] && OPTS+=("$@") && break;
+
+		# Short options
+		if [[ ${arg:0:1} = "-" && ${arg:1:1} != "-" ]]; then
+			OPTS+=("-${arg:1:1}")
+			(( ${#arg} > 2 )) && arg="-${arg:2}" || { shift; arg=$1; }
+		# Long options
+		elif [[ ${arg:0:2} = "--" ]]; then
+			# Split argument at '=' :
+			# e.g --foo=bar -> key=--foo, value=bar
+			key=${arg%%=*}; value=${arg#*=}
+			OPTS+=("$key")
+			[[ $key != $value ]] && OPTS+=("$value")
+			shift; arg=$1
+		else
+			OPTS+=("$arg"); shift; arg=$1
+		fi
+	done
+}
+
+unset MAJOR REFRESH SEARCH EDIT FETCH REMOVE QUERY CD
+
+explode_args "$@"
+
+for ((i = 0; i < "${#OPTS[@]}"; i++)); do
+	case ${OPTS[$i]} in
+		-S|--sync)		unset OPTS[$i]; MAJOR="sync";;
+		-A|--aur)		unset OPTS[$i]; MAJOR="aur";;
+		-C|--clean)		unset OPTS[$i]; MAJOR="clean";;
+	esac
+done
+
+set -- "${OPTS[@]}"
+unset OPTS
+
+while [[ $1 ]]; do
+	case "$1" in
+		-y|--refresh)	REFRESH=1;;
+		-s|--search)	SEARCH=1;;
+		-e|--edit)		EDIT=1;;
+		-f|--fetch)		FETCH=1;;
+		-r|--remove)	REMOVE=1;;
+		-q|--query)		QUERY=1;;
+		-d|--dir)		CD=1;;
+		*)				ARGS+=("$1");;
+	esac
+	shift
+done
+
+if [[ $MAJOR = "sync" ]] && [[ $REFRESH = 1 ]]; then
+	srcman_refresh
+fi
+
+if [[ $MAJOR = "sync" ]] && [[ $SEARCH = 1 ]] && [[ $ARGS != "" ]]; then
+	#PKGDIR=$(find $DR/packages $DR/community -name \*$ARGS\* -not -iwholename '*.git*' -type d | sed "s|$DR/||g")
+	PKGDIR=$(find $DR/packages $DR/community -maxdepth 1 -name \*$ARGS\* -not -iwholename '*.git*' | sed "s|$DR/||g")
+	if [[ $PKGDIR != "" ]]; then
+		echo -e "[\e[32m*\e[0m] Search results for $ARGS:"
+		echo "$PKGDIR"
+		exit
+	else
+		echo -e "[\e[31m*\e[0m] No search results for $ARGS."
+		exit
+	fi
+fi
+
+if [[ $MAJOR = "sync" ]] && [[ $EDIT = 1 ]] && [[ $ARGS != "" ]]; then
+	for arg in ${ARGS[@]}; do
+		#PKGDIR=$(find $DR/packages $DR/community -name $arg -not -iwholename '*.git*')
+		PKGDIR=$(find $DR/packages $DR/community -maxdepth 1 -name $arg -not -iwholename '*.git*')
+		if [[ $PKGDIR != "" ]]; then
+			echo -e "[\e[32m*\e[0m] Package $arg found."
+			cd $PKGDIR/trunk
+			"${EDITOR:-vi}" PKGBUILD
+		else
+			echo -e "[\e[31m*\e[0m] Package $arg not found."
+		fi
+	done
+	exit
+fi
+
+if [[ $MAJOR = "sync" ]] && [[ $CD = 1 ]] && [[ $ARGS != "" ]]; then
+	for arg in ${ARGS[@]}; do
+		#PKGDIR=$(find $DR/packages $DR/community -name $arg -not -iwholename '*.git*')
+		PKGDIR=$(find $DR/packages $DR/community -maxdepth 1 -name $arg -not -iwholename '*.git*')
+		if [[ $PKGDIR != "" ]]; then
+			echo -e "[\e[32m*\e[0m] Package $arg found."
+			cd $PKGDIR/trunk		
+			case $SRCMAN_SHELL in
+				bash)	exec bash -i --rcfile $SHRC;;
+				zsh)	ZDOTDIR=$SRCMAN_ZSHRCDIR exec zsh -i;;
+			esac
+		else
+			echo -e "[\e[31m*\e[0m] Package $arg not found."
+		fi
+	done
+	exit
+fi
+
+if [[ $MAJOR = "sync" ]] && [[ $ARGS != "" ]]; then
+	for arg in ${ARGS[@]}; do
+		#PKGDIR=$(find $DR/packages $DR/community -name $arg -not -iwholename '*.git*')
+		PKGDIR=$(find $DR/packages $DR/community -maxdepth 1 -name $arg -not -iwholename '*.git*')
+		if [[ $PKGDIR != "" ]]; then
+			echo -e "[\e[32m*\e[0m] Package $arg found."
+			cd $PKGDIR
+			cd trunk
+			pwd
+			makepkg -si
+		else
+			echo -e "[\e[31m*\e[0m] Package $arg not found."
+		fi
+	done
+	exit
+fi
+
+if [[ $MAJOR = "aur" ]] && [[ $SEARCH = 1 ]] && [[ $ARGS != "" ]]; then
+	#RESULTS=$(package-query -As -f "%r/%n" $ARGS)
+	#if [[ $RESULTS != "" ]]; then
+	#	echo -e "[\e[32m*\e[0m] Search results for $ARGS:"
+	#	echo "$RESULTS"
+	#	exit
+	#else
+	#	echo -e "[\e[31m*\e[0m] No search results for $ARGS."
+	#	exit
+	#fi
+
+	#PKGDIR=$(find $DR/aur -name \*$ARGS\* -not -iwholename '*.git*' -type d | sed "s|$DR/||g")
+	PKGDIR=$(find $DR/aur -maxdepth 1 -name \*$ARGS\* -not -iwholename '*.git*' | sed "s|$DR/||g")
+	if [[ $PKGDIR != "" ]]; then
+		echo -e "[\e[32m*\e[0m] Search results for $ARGS:"
+		echo "$PKGDIR"
+		exit
+	else
+		echo -e "[\e[31m*\e[0m] No search results for $ARGS."
+		exit
+	fi
+fi
+
+if [[ $MAJOR = "aur" ]] && [[ $QUERY = 1 ]]; then
+	if [ -d "$DR/aur" ]; then
+		echo -e "[\e[33m*\e[0m] Querying local AUR packages..."
+		ls -1 --color=never $DR/aur
+		exit
+	else
+		echo -e "[\e[32m*\e[0m] Local AUR directory doesn't exist, try cloning something first."
+		exit
+	fi
+fi
+
+if [[ $MAJOR = "aur" ]] && [[ $REMOVE = 1 ]] && [[ $ARGS != "" ]]; then
+	for arg in ${ARGS[@]}; do
+		#PKGDIR=$(find $DR/aur -name \*$arg\* -not -iwholename '*.git*' -type d)
+		PKGDIR=$(find $DR/aur -maxdepth 1 -name \*$arg\* -not -iwholename '*.git*')
+		if [[ $PKGDIR != "" ]]; then
+			echo -e "[\e[33m*\e[0m] Removing $arg..."
+			rm -rf $PKGDIR
+			exit
+		else
+			echo -e "[\e[31m*\e[0m] Package $arg not found."
+			exit
+		fi
+	done
+fi
+
+if [[ $MAJOR = "aur" ]] && [[ $FETCH = 1 ]] && [[ $ARGS != "" ]]; then
+	for arg in ${ARGS[@]}; do
+		srcman_aur
+	done
+	exit
+fi
+
+if [[ $MAJOR = "aur" ]] && [[ $EDIT = 1 ]] && [[ $ARGS != "" ]]; then
+	for arg in ${ARGS[@]}; do
+		srcman_aur
+		"${EDITOR:-vi}" PKGBUILD
+	done
+	exit
+fi
+
+if [[ $MAJOR = "aur" ]] && [[ $CD = 1 ]] && [[ $ARGS != "" ]]; then
+	for arg in ${ARGS[@]}; do
+		srcman_aur
+		case $SRCMAN_SHELL in
+			bash)	exec bash -i --rcfile $SHRC;;
+			zsh)	ZDOTDIR=$SRCMAN_ZSHRCDIR exec zsh -i;;
+		esac
+	done
+	exit
+fi
+
+if [[ $MAJOR = "aur" ]] && [[ $ARGS != "" ]]; then
+	for arg in ${ARGS[@]}; do
+		srcman_aur
+		makepkg -si
+	done
+	exit
+fi
+
+if [[ $MAJOR = "clean" ]]; then
+	echo -e "[\e[32m*\e[0m] Cleaning git repos..."
+	cd $DR/packages
+		git clean -df
+		git checkout -- .
+	cd $DR/community
+		git clean -df
+		git checkout -- .
+	exit
+fi
