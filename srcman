@@ -190,12 +190,11 @@ if [[ $MAJOR = "aur" ]] && [[ $REMOVE = 1 ]] && [[ $ARGS != "" ]]; then
 		if [[ $PKGDIR != "" ]]; then
 			echo -e "[\e[33m*\e[0m] Removing $arg..."
 			rm -rf $PKGDIR
-			exit
 		else
 			echo -e "[\e[31m*\e[0m] Package $arg not found."
-			exit
 		fi
 	done
+	exit
 fi
 
 if [[ $MAJOR = "aur" ]] && [[ $FETCH = 1 ]] && [[ $ARGS != "" ]]; then
