@@ -58,6 +58,22 @@ srcman_refresh() {
 		git pull 
 }
 
+srcman_initialize() {
+	echo -e "[\e[32m*\e[0m] Creating directory tree..."
+	mkdir -p $SRCMAN_DIR
+	srcman_refresh
+}
+
+if [[ ! -d $SRCMAN_DIR ]]; then
+	echo -e "[\e[33m*\e[0m] The srcman directories/repositories were not found at $SRCMAN_DIR"
+	read -n 1 -p $'[\e[34m*\e[0m] Create them? [Y/n] ' answer
+	case ${answer:0:1} in
+		n|N ) exit;;
+		* ) srcman_initialize;;
+	esac
+	echo "TEMP: done"
+fi
+
 srcman_aur() {
 	PKGURL=$(package-query -Aif "%G" $arg)
 	PKGBASE=$(package-query -Aif "%b" $arg)
