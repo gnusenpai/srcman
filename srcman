@@ -1,5 +1,6 @@
 #!/bin/bash
 
+SRCMAN_VERSION="v0.5.0"
 SRCMAN_CONFIG="${SRCMAN_CONFIG:-$HOME/.config/srcman.conf}"
 
 srcman_createconfig() {
@@ -14,6 +15,47 @@ SRCMAN_DEBUG="${SRCMAN_DEBUG:-0}"
 EOF
 }
 
+# This will set variables if they are not found in the current config file.
+SRCMAN_DIR="${SRCMAN_DIR:-$HOME/.srcman}"
+SRCMAN_SHELL="${SRCMAN_SHELL:-bash}"
+SRCMAN_BASHRC="${SRCMAN_BASHRC:-$HOME/.bashrc}"
+SRCMAN_ZSHRCDIR="${SRCMAN_ZSHRCDIR:-$SRCMAN_DIR}"
+SRCMAN_DEBUG="${SRCMAN_DEBUG:-0}"
+
+srcman_help() {
+cat << EOF
+srcman - Arch Linux Source Manager $SRCMAN_VERSION
+
+Usage: srcman                             initialize paths and repositories
+   or: srcman source package              compiles and installs package from source
+   or: srcman source operation [package]  apply operation to package or to source
+
+Sources:
+   -S, --sync     default Arch Linux PKGBUILDs cloned by git
+   -A, --aur      local repository of AUR PKGBUILDs
+
+Operations:
+   Sync only:
+   -y, --refresh  updates local Arch Linux PKGBUILDs
+   -c, --clean    restores PKGBUILDs to default
+
+   AUR only:
+   -q, --query    lists all local AUR PKGBUILDs
+   -r, --remove   removes given AUR PKGBUILD
+   -f, --fetch    clones given AUR PKGBUILD, but does not build it
+
+   Sync and AUR:
+   -s, --search   searches local repositories for a package
+   -e, --edit     opens PKGBUILD in a text editor
+   -d, --dir      changes directory to a PKGBUILD
+EOF
+}
+
+if [[ $1 = "--help" ]] || [[ $1 = "-h" ]]; then
+	srcman_help
+	exit
+fi
+
 if [[ -a $SRCMAN_CONFIG ]]; then
 	source "$SRCMAN_CONFIG"
 else
@@ -24,14 +66,8 @@ else
 	esac
 fi
 
-# This will set variables if they are not found in the current config file.
-SRCMAN_DIR="${SRCMAN_DIR:-$HOME/.srcman}"
-SRCMAN_SHELL="${SRCMAN_SHELL:-bash}"
-SRCMAN_BASHRC="${SRCMAN_BASHRC:-$HOME/.bashrc}"
-SRCMAN_ZSHRCDIR="${SRCMAN_ZSHRCDIR:-$SRCMAN_DIR}"
-SRCMAN_DEBUG="${SRCMAN_DEBUG:-0}"
-
 if [[ $SRCMAN_DEBUG = 1 ]]; then
+	echo "Version:   $SRCMAN_VERSION"
 	echo "Debug:     $SRCMAN_DEBUG"
 	echo "Config:    $SRCMAN_CONFIG"
 	echo "Directory: $SRCMAN_DIR"
@@ -71,7 +107,7 @@ if [[ ! -d $SRCMAN_DIR ]]; then
 		n|N ) exit;;
 		* ) srcman_initialize;;
 	esac
-	echo "TEMP: done"
+	srcman_help
 fi
 
 srcman_aur() {
