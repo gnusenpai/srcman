@@ -1,9 +1,44 @@
 #!/bin/bash
 
-SRCMAN_DIR="${SRCMAN_DIR:-$HOME/src/srcman}"
-SRCMAN_SHELL="${SRCMAN_SHELL:-zsh}"
+SRCMAN_CONFIG="${SRCMAN_CONFIG:-$HOME/.config/srcman.conf}"
+
+srcman_createconfig() {
+cat > "$SRCMAN_CONFIG" << 'EOF'
+#!/bin/bash
+
+SRCMAN_DIR="${SRCMAN_DIR:-$HOME/.srcman}"
+SRCMAN_SHELL="${SRCMAN_SHELL:-bash}"
 SRCMAN_BASHRC="${SRCMAN_BASHRC:-$HOME/.bashrc}"
-SRCMAN_ZSHRCDIR="${SRCMAN_ZSHRCDIR:-$HOME/src/srcman}"
+SRCMAN_ZSHRCDIR="${SRCMAN_ZSHRCDIR:-$SRCMAN_DIR}"
+SRCMAN_DEBUG="${SRCMAN_DEBUG:-0}"
+EOF
+}
+
+if [[ -a $SRCMAN_CONFIG ]]; then
+	source "$SRCMAN_CONFIG"
+else
+	read -n 1 -p $'[\e[34m*\e[0m] Config file not found, create one? [Y/n] ' answer
+	case ${answer:0:1} in
+		n|N ) ;;
+		* ) srcman_createconfig; source "$SRCMAN_CONFIG";;
+	esac
+fi
+
+# This will set variables if they are not found in the current config file.
+SRCMAN_DIR="${SRCMAN_DIR:-$HOME/.srcman}"
+SRCMAN_SHELL="${SRCMAN_SHELL:-bash}"
+SRCMAN_BASHRC="${SRCMAN_BASHRC:-$HOME/.bashrc}"
+SRCMAN_ZSHRCDIR="${SRCMAN_ZSHRCDIR:-$SRCMAN_DIR}"
+SRCMAN_DEBUG="${SRCMAN_DEBUG:-0}"
+
+if [[ $SRCMAN_DEBUG = 1 ]]; then
+	echo "Debug:     $SRCMAN_DEBUG"
+	echo "Config:    $SRCMAN_CONFIG"
+	echo "Directory: $SRCMAN_DIR"
+	echo "Shell:     $SRCMAN_SHELL"
+	echo "Bashrc:    $SRCMAN_BASHRC"
+	echo "Zshrc Dir: $SRCMAN_ZSHRCDIR"
+fi
 
 srcman_refresh() {
 	cd $SRCMAN_DIR
