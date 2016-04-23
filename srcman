@@ -1,12 +1,12 @@
 #!/bin/bash
 
-DR=~/src/srcman
+SRCMAN_DIR=~/src/srcman
 SRCMAN_SHELL=zsh
 SRCMAN_BASHRC=~/.bashrc
 SRCMAN_ZSHRCDIR=~/src/srcman
 
 srcman_refresh() {
-	cd $DR
+	cd $SRCMAN_DIR
 		if [ ! -d "packages" ]; then
 			echo -e "[\e[33m*\e[0m] packages directory not found, cloning..."
 			git clone git://projects.archlinux.org/svntogit/packages.git
@@ -15,10 +15,10 @@ srcman_refresh() {
 			echo -e "[\e[33m*\e[0m] community directory not found, cloning..."
 			git clone git://projects.archlinux.org/svntogit/community.git
 		fi
-	cd $DR/packages
+	cd $SRCMAN_DIR/packages
 		echo -e "[\e[32m*\e[0m] Updating packages repo..."
 		git pull
-	cd $DR/community
+	cd $SRCMAN_DIR/community
 		echo -e "[\e[32m*\e[0m] Updating community repo..."
 		git pull 
 }
@@ -30,12 +30,12 @@ srcman_aur() {
 		echo -e "[\e[31m*\e[0m] Package $arg not found."
 		exit
 	fi
-	cd $DR
+	cd $SRCMAN_DIR
 		if [ ! -d "aur" ]; then
 			echo -e "[\e[33m*\e[0m] aur directory not found, creating..."
 			mkdir aur
 		fi
-	cd $DR/aur
+	cd $SRCMAN_DIR/aur
 		if [ ! -d "$PKGBASE" ]; then
 			echo -e "[\e[33m*\e[0m] Package $arg not found in local directory, cloning..."
 			git clone $PKGURL
@@ -103,7 +103,7 @@ if [[ $MAJOR = "sync" ]] && [[ $REFRESH = 1 ]]; then
 fi
 
 if [[ $MAJOR = "sync" ]] && [[ $SEARCH = 1 ]] && [[ $ARGS != "" ]]; then
-	PKGDIR=$(find $DR/packages $DR/community -maxdepth 1 -name \*$ARGS\* -not -iwholename '*.git*' | sed "s|$DR/||g")
+	PKGDIR=$(find $SRCMAN_DIR/packages $SRCMAN_DIR/community -maxdepth 1 -name \*$ARGS\* -not -iwholename '*.git*' | sed "s|$SRCMAN_DIR/||g")
 	if [[ $PKGDIR != "" ]]; then
 		echo -e "[\e[32m*\e[0m] Search results for $ARGS:"
 		echo "$PKGDIR"
@@ -116,7 +116,7 @@ fi
 
 if [[ $MAJOR = "sync" ]] && [[ $EDIT = 1 ]] && [[ $ARGS != "" ]]; then
 	for arg in ${ARGS[@]}; do
-		PKGDIR=$(find $DR/packages $DR/community -maxdepth 1 -name $arg -not -iwholename '*.git*')
+		PKGDIR=$(find $SRCMAN_DIR/packages $SRCMAN_DIR/community -maxdepth 1 -name $arg -not -iwholename '*.git*')
 		if [[ $PKGDIR != "" ]]; then
 			echo -e "[\e[32m*\e[0m] Package $arg found."
 			cd $PKGDIR/trunk
@@ -130,7 +130,7 @@ fi
 
 if [[ $MAJOR = "sync" ]] && [[ $CD = 1 ]] && [[ $ARGS != "" ]]; then
 	for arg in ${ARGS[@]}; do
-		PKGDIR=$(find $DR/packages $DR/community -maxdepth 1 -name $arg -not -iwholename '*.git*')
+		PKGDIR=$(find $SRCMAN_DIR/packages $SRCMAN_DIR/community -maxdepth 1 -name $arg -not -iwholename '*.git*')
 		if [[ $PKGDIR != "" ]]; then
 			echo -e "[\e[32m*\e[0m] Package $arg found."
 			cd $PKGDIR/trunk		
@@ -147,7 +147,7 @@ fi
 
 if [[ $MAJOR = "sync" ]] && [[ $ARGS != "" ]]; then
 	for arg in ${ARGS[@]}; do
-		PKGDIR=$(find $DR/packages $DR/community -maxdepth 1 -name $arg -not -iwholename '*.git*')
+		PKGDIR=$(find $SRCMAN_DIR/packages $SRCMAN_DIR/community -maxdepth 1 -name $arg -not -iwholename '*.git*')
 		if [[ $PKGDIR != "" ]]; then
 			echo -e "[\e[32m*\e[0m] Package $arg found."
 			cd $PKGDIR
@@ -162,7 +162,7 @@ if [[ $MAJOR = "sync" ]] && [[ $ARGS != "" ]]; then
 fi
 
 if [[ $MAJOR = "aur" ]] && [[ $SEARCH = 1 ]] && [[ $ARGS != "" ]]; then
-	PKGDIR=$(find $DR/aur -maxdepth 1 -name \*$ARGS\* -not -iwholename '*.git*' | sed "s|$DR/||g")
+	PKGDIR=$(find $SRCMAN_DIR/aur -maxdepth 1 -name \*$ARGS\* -not -iwholename '*.git*' | sed "s|$SRCMAN_DIR/||g")
 	if [[ $PKGDIR != "" ]]; then
 		echo -e "[\e[32m*\e[0m] Search results for $ARGS:"
 		echo "$PKGDIR"
@@ -174,9 +174,9 @@ if [[ $MAJOR = "aur" ]] && [[ $SEARCH = 1 ]] && [[ $ARGS != "" ]]; then
 fi
 
 if [[ $MAJOR = "aur" ]] && [[ $QUERY = 1 ]]; then
-	if [ -d "$DR/aur" ]; then
+	if [ -d "$SRCMAN_DIR/aur" ]; then
 		echo -e "[\e[33m*\e[0m] Querying local AUR packages..."
-		ls -1 --color=never $DR/aur
+		ls -1 --color=never $SRCMAN_DIR/aur
 		exit
 	else
 		echo -e "[\e[32m*\e[0m] Local AUR directory doesn't exist, try cloning something first."
@@ -186,7 +186,7 @@ fi
 
 if [[ $MAJOR = "aur" ]] && [[ $REMOVE = 1 ]] && [[ $ARGS != "" ]]; then
 	for arg in ${ARGS[@]}; do
-		PKGDIR=$(find $DR/aur -maxdepth 1 -name \*$arg\* -not -iwholename '*.git*')
+		PKGDIR=$(find $SRCMAN_DIR/aur -maxdepth 1 -name \*$arg\* -not -iwholename '*.git*')
 		if [[ $PKGDIR != "" ]]; then
 			echo -e "[\e[33m*\e[0m] Removing $arg..."
 			rm -rf $PKGDIR
@@ -233,10 +233,10 @@ fi
 
 if [[ $MAJOR = "clean" ]]; then
 	echo -e "[\e[32m*\e[0m] Cleaning git repos..."
-	cd $DR/packages
+	cd $SRCMAN_DIR/packages
 		git clean -df
 		git checkout -- .
-	cd $DR/community
+	cd $SRCMAN_DIR/community
 		git clean -df
 		git checkout -- .
 	exit
