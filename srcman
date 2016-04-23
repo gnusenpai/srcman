@@ -120,7 +120,7 @@ explode_args() {
 	done
 }
 
-unset MAJOR REFRESH SEARCH EDIT FETCH REMOVE QUERY CD
+unset MAJOR REFRESH SEARCH EDIT FETCH REMOVE QUERY CD CLEAN
 
 explode_args "$@"
 
@@ -128,7 +128,6 @@ for ((i = 0; i < "${#OPTS[@]}"; i++)); do
 	case ${OPTS[$i]} in
 		-S|--sync)		unset OPTS[$i]; MAJOR="sync";;
 		-A|--aur)		unset OPTS[$i]; MAJOR="aur";;
-		-C|--clean)		unset OPTS[$i]; MAJOR="clean";;
 	esac
 done
 
@@ -144,6 +143,7 @@ while [[ $1 ]]; do
 		-r|--remove)	REMOVE=1;;
 		-q|--query)		QUERY=1;;
 		-d|--dir)		CD=1;;
+		-c|--clean)     CLEAN=1;;
 		*)				ARGS+=("$1");;
 	esac
 	shift
@@ -282,7 +282,7 @@ if [[ $MAJOR = "aur" ]] && [[ $ARGS != "" ]]; then
 	exit
 fi
 
-if [[ $MAJOR = "clean" ]]; then
+if [[ $MAJOR = "sync" ]] && [[ $CLEAN = 1 ]]; then
 	echo -e "[\e[32m*\e[0m] Cleaning git repos..."
 	cd $SRCMAN_DIR/packages
 		git clean -df
