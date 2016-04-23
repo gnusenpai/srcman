@@ -1,9 +1,9 @@
 #!/bin/bash
 
-SRCMAN_DIR=~/src/srcman
-SRCMAN_SHELL=zsh
-SRCMAN_BASHRC=~/.bashrc
-SRCMAN_ZSHRCDIR=~/src/srcman
+SRCMAN_DIR="${SRCMAN_DIR:-$HOME/src/srcman}"
+SRCMAN_SHELL="${SRCMAN_SHELL:-zsh}"
+SRCMAN_BASHRC="${SRCMAN_BASHRC:-$HOME/.bashrc}"
+SRCMAN_ZSHRCDIR="${SRCMAN_ZSHRCDIR:-$HOME/src/srcman}"
 
 srcman_refresh() {
 	cd $SRCMAN_DIR
