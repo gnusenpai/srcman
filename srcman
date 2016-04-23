@@ -271,6 +271,20 @@ if [[ $MAJOR = "aur" ]] && [[ $QUERY = 1 ]]; then
 	fi
 fi
 
+if [[ $MAJOR = "aur" ]] && [[ $REMOVE = 1 ]] && [[ $FETCH = 1 ]] && [[ $ARGS != "" ]]; then
+	for arg in ${ARGS[@]}; do
+		PKGDIR=$(find $SRCMAN_DIR/aur -maxdepth 1 -name \*$arg\* -not -iwholename '*.git*')
+		if [[ $PKGDIR != "" ]]; then
+			echo -e "[\e[33m*\e[0m] Removing $arg..."
+			rm -rf $PKGDIR
+		else
+			echo -e "[\e[31m*\e[0m] Package $arg not found."
+		fi
+		srcman_aur
+	done
+	exit
+fi
+
 if [[ $MAJOR = "aur" ]] && [[ $REMOVE = 1 ]] && [[ $ARGS != "" ]]; then
 	for arg in ${ARGS[@]}; do
 		PKGDIR=$(find $SRCMAN_DIR/aur -maxdepth 1 -name \*$arg\* -not -iwholename '*.git*')
