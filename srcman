@@ -104,8 +104,8 @@ if [[ ! -d $SRCMAN_DIR ]]; then
 	echo -e "[\e[33m*\e[0m] The srcman directories/repositories were not found at $SRCMAN_DIR"
 	read -n 1 -p $'[\e[34m*\e[0m] Create them? [Y/n] ' answer
 	case ${answer:0:1} in
-		n|N ) exit;;
-		* ) srcman_initialize;;
+		n|N) exit;;
+		*) srcman_initialize;;
 	esac
 	srcman_help
 fi
