@@ -36,6 +36,7 @@ Operations:
    -q, --query    lists all local AUR PKGBUILDs
    -r, --remove   removes given AUR PKGBUILD
    -f, --fetch    clones given AUR PKGBUILD, but does not build it
+   -u, --upgrade  pulls latest version of given AUR PKGBUILD, and builds it
 
    Sync and AUR:
    -s, --search   searches local repositories for a package
@@ -131,6 +132,22 @@ srcman_aur() {
 		cd $PKGBASE
 }
 
+srcman_upgrade() {
+	git pull
+	if [[ $? -ne 0 ]]; then
+		echo -e "[\e[33m*\e[0m] Srcman detected changes in this package."
+		read -n 1 -p $'[\e[34m*\e[0m] Do you want to stash your changes? [y/N] ' answer
+		case ${answer:0:1} in
+			y|Y)
+				echo
+				git stash
+				git pull
+			;;
+			*) continue;;
+		esac
+	fi
+}
+
 explode_args() {
 	unset OPTS
 	local arg=$1 key value
@@ -180,6 +197,7 @@ while [[ $1 ]]; do
 		-q|--query)		QUERY=1;;
 		-d|--dir)		CD=1;;
 		-c|--clean)     CLEAN=1;;
+		-u|--upgrade)   UPGRADE=1;;
 		*)				ARGS+=("$1");;
 	esac
 	shift
@@ -320,6 +338,15 @@ if [[ $MAJOR = "aur" ]] && [[ $CD = 1 ]] && [[ $ARGS != "" ]]; then
 			bash)	exec bash --rcfile $SRCMAN_BASHRC -i;;
 			zsh)	ZDOTDIR=$SRCMAN_ZSHRCDIR exec zsh -i;;
 		esac
+	done
+	exit
+fi
+
+if [[ $MAJOR = "aur" ]] && [[ $UPGRADE = 1 ]] && [[ $ARGS != "" ]]; then
+	for arg in ${ARGS[@]}; do
+		srcman_aur
+		srcman_upgrade
+		makepkg -si
 	done
 	exit
 fi
