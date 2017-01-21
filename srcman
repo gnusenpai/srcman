@@ -9,6 +9,7 @@ cat > "$SRCMAN_CONFIG" << 'EOF'
 
 SRCMAN_DIR="${SRCMAN_DIR:-$HOME/.srcman}"
 SRCMAN_SHELL="${SRCMAN_SHELL:-bash}"
+SRCMAN_MAKEPKG="${SRCMAN_MAKEPKG:-makepkg -si}"
 SRCMAN_BASHRC="${SRCMAN_BASHRC:-$HOME/.bashrc}"
 SRCMAN_ZSHRCDIR="${SRCMAN_ZSHRCDIR:-$SRCMAN_DIR}"
 SRCMAN_DEBUG="${SRCMAN_DEBUG:-0}"
@@ -63,6 +64,7 @@ fi
 # This will set variables if they are not found in the current config file.
 SRCMAN_DIR="${SRCMAN_DIR:-$HOME/.srcman}"
 SRCMAN_SHELL="${SRCMAN_SHELL:-bash}"
+SRCMAN_MAKEPKG="${SRCMAN_MAKEPKG:-makepkg -si}"
 SRCMAN_BASHRC="${SRCMAN_BASHRC:-$HOME/.bashrc}"
 SRCMAN_ZSHRCDIR="${SRCMAN_ZSHRCDIR:-$SRCMAN_DIR}"
 SRCMAN_DEBUG="${SRCMAN_DEBUG:-0}"
@@ -73,6 +75,7 @@ if [[ $SRCMAN_DEBUG = 1 ]]; then
 	echo "Config:    $SRCMAN_CONFIG"
 	echo "Directory: $SRCMAN_DIR"
 	echo "Shell:     $SRCMAN_SHELL"
+	echo "Makepkg:   $SRCMAN_MAKEPKG"
 	echo "Bashrc:    $SRCMAN_BASHRC"
 	echo "Zshrc Dir: $SRCMAN_ZSHRCDIR"
 fi
@@ -258,7 +261,7 @@ if [[ $MAJOR = "sync" ]] && [[ $ARGS != "" ]]; then
 			cd $PKGDIR
 			cd trunk
 			pwd
-			makepkg -si
+			$SRCMAN_MAKEPKG
 		else
 			echo -e "[\e[31m*\e[0m] Package $arg not found."
 		fi
@@ -346,7 +349,7 @@ if [[ $MAJOR = "aur" ]] && [[ $UPGRADE = 1 ]] && [[ $ARGS != "" ]]; then
 	for arg in ${ARGS[@]}; do
 		srcman_aur
 		srcman_upgrade
-		makepkg -si
+		$SRCMAN_MAKEPKG
 	done
 	exit
 fi
@@ -354,7 +357,7 @@ fi
 if [[ $MAJOR = "aur" ]] && [[ $ARGS != "" ]]; then
 	for arg in ${ARGS[@]}; do
 		srcman_aur
-		makepkg -si
+		$SRCMAN_MAKEPKG
 	done
 	exit
 fi
